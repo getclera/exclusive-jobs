@@ -1,0 +1,12 @@
+const all=[...(window.faceData1||[]),...(window.faceData2||[]),...(window.faceData3||[]),...(window.faceData4||[])];
+let items=[...all],idx=0,mode='grid';
+const $=id=>document.getElementById(id);
+const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function media(r){return r.pic?`<img class="face" src="${esc(r.pic)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=placeholder>?</div>'">`:`<div class="placeholder">?</div>`}
+function renderGrid(){ $('grid').innerHTML=items.map(r=>`<div class="card" onclick="this.classList.toggle('revealed')">${media(r)}<div class="info"><div class="name">${esc(r.name)}</div><div class="role">${esc(r.role)}</div><div class="owner">${esc(r.owner)}</div></div></div>`).join(''); $('count').textContent=`${items.length} people • click a face to reveal in quiz mode`; }
+function renderFlash(){if(!items.length)return;idx=(idx+items.length)%items.length;const r=items[idx];$('flashMedia').innerHTML=media(r);$('flashInfo').innerHTML=`<div class="name" style="font-size:22px">${esc(r.name)}</div><div class="role" style="font-size:15px">${esc(r.role)}</div><div class="owner">${esc(r.owner)}</div>`;$('flashInfo').classList.add('hidden');$('count').textContent=`${idx+1} / ${items.length}`;}
+function setMode(m){mode=m;document.body.classList.toggle('quiz',m==='quiz');$('grid').style.display=m==='flash'?'none':'grid';$('flash').classList.toggle('on',m==='flash');['gridBtn','quizBtn','flashBtn'].forEach(id=>$(id).classList.remove('active'));$(m==='grid'?'gridBtn':m==='quiz'?'quizBtn':'flashBtn').classList.add('active');m==='flash'?renderFlash():renderGrid();}
+$('gridBtn').onclick=()=>setMode('grid');$('quizBtn').onclick=()=>setMode('quiz');$('flashBtn').onclick=()=>setMode('flash');$('shuffleBtn').onclick=()=>{items.sort(()=>Math.random()-.5);idx=0;mode==='flash'?renderFlash():renderGrid();};
+$('ownerFilter').onchange=e=>{items=all.filter(r=>!e.target.value||r.owner===e.target.value);idx=0;mode==='flash'?renderFlash():renderGrid();};$('revealBtn').onclick=()=>$('flashInfo').classList.toggle('hidden');$('nextBtn').onclick=()=>{idx++;renderFlash();};$('prevBtn').onclick=()=>{idx--;renderFlash();};
+document.addEventListener('keydown',e=>{if(mode!=='flash')return;if(e.key==='ArrowRight'){idx++;renderFlash();}if(e.key==='ArrowLeft'){idx--;renderFlash();}if(e.key===' '){e.preventDefault();$('flashInfo').classList.toggle('hidden');}});
+renderGrid();
